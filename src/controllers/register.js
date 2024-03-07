@@ -1,6 +1,5 @@
-const { User } = require("../sequelized/models");
 const bcrypt = require("bcrypt");
-
+const { User } = require("../sequelized/models");
 const { findUserByEmail } = require("../utils/findUser");
 
 const register = async (req, res) => {

@@ -1,5 +1,4 @@
 const bcrypt = require("bcrypt");
-
 const { findUserByEmail } = require("../utils/findUser");
 
 const logIn = async (req, res) => {
