@@ -4,7 +4,8 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const { checkSession } =require("./src/middleware/checkSession");
-const regiterRoute = require("./src/routes/register");
+const regiterRoute = require("./src/routes/registerUser");
+const regiterSuperAdminRoute = require("./src/routes/superAdminRegister");
 const logInRoute = require("./src/routes/login");
 const logoutRoute = require("./src/routes/logout");
 
@@ -35,7 +36,8 @@ app.use(Session({
   }
 }));
 
-app.use("/register", regiterRoute);
+app.use("/register-new-user", regiterRoute); //register for user
+app.use("/register-super-admin", regiterSuperAdminRoute); //register for superadmin
 app.use("/login", logInRoute);
 
 //dashboard api is just to test the successfully login.
