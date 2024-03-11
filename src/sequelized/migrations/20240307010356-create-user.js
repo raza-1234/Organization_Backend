@@ -26,6 +26,18 @@ module.exports = {
         type: DataTypes.STRING,
         allowNull: false
       },
+      rights: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references : {
+          model : "Organizations",
+          key : "id"
+        }
+      },
       createdAt: {
         allowNull: false,
         type: DataTypes.DATE
