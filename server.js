@@ -2,6 +2,7 @@ const Express = require("express");
 const Session = require("express-session");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const passport = require("passport");
 
 const { checkSession } =require("./src/middleware/checkSession");
 const regiterRoute = require("./src/routes/registerUser");
@@ -36,14 +37,19 @@ app.use(Session({
   }
 }));
 
-app.use("/register-new-user", regiterRoute); //register for user
-app.use("/register-super-admin", regiterSuperAdminRoute); //register for superadmin
+app.use(passport.initialize());
+app.use(passport.session());
+require("./src/passportStrategy/passportLocal");
+
+app.use("/register-new-user", regiterRoute);
+app.use("/register-super-admin", regiterSuperAdminRoute);
 app.use("/login", logInRoute);
 
 //dashboard api is just to test the successfully login.
 app.get("/dashboard", checkSession, (req, res) => {
   console.log("request", req.sessionID);
-  return res.status(200).json({"message": `welcome to dashboard ${req.session.userId}`});
+  console.log("req.userrrrr>>>>>", req.user);
+  return res.status(200).json({"message": `welcome to dashboard ${req.session.passport.user}`});
 });
 app.use("/logout", logoutRoute);
 
