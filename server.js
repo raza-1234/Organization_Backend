@@ -5,10 +5,11 @@ const cors = require("cors");
 const passport = require("passport");
 
 const { checkSession } =require("./src/middleware/checkSession");
-const regiterRoute = require("./src/routes/registerUser");
-const regiterSuperAdminRoute = require("./src/routes/superAdminRegister");
+const registerRoute = require("./src/routes/registerUser");
+const registerSuperAdminRoute = require("./src/routes/superAdminRegister");
 const logInRoute = require("./src/routes/login");
 const logoutRoute = require("./src/routes/logout");
+const { strategy } = require("./src/passportStrategy/passportLocal");
 
 const { sequelize } = require("./src/sequelized/models");
 
@@ -21,7 +22,7 @@ const session_life = 1000 * 60 * 60 * 24;
 
 app.use(Express.json());
 app.use(cookieParser());
-app.use(cors({ credentials: true, origin: "http://localhost:3000"}));
+app.use(cors({credentials: true, origin: "http://localhost:3000"}));
 
 app.use(Session({
   name: "session_id",
@@ -39,17 +40,25 @@ app.use(Session({
 
 app.use(passport.initialize());
 app.use(passport.session());
-require("./src/passportStrategy/passportLocal");
+passport.use(strategy);
 
-app.use("/register-new-user", regiterRoute);
-app.use("/register-super-admin", regiterSuperAdminRoute);
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  done(null, id);
+});
+
+app.use("/register-super-admin", registerSuperAdminRoute);
+app.use("/register", registerRoute);
 app.use("/login", logInRoute);
+app.use("/logout", logoutRoute);
 
 //dashboard api is just to test the successfully login.
 app.get("/dashboard", checkSession, (req, res) => {
   return res.status(200).json({"message": `welcome to dashboard ${req.session.passport.user}`});
 });
-app.use("/logout", logoutRoute);
 
 app.listen(port, async () => {
   await sequelize.authenticate();
