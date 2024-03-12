@@ -9,6 +9,7 @@ const registerRoute = require("./src/routes/registerUser");
 const registerSuperAdminRoute = require("./src/routes/superAdminRegister");
 const logInRoute = require("./src/routes/login");
 const logoutRoute = require("./src/routes/logout");
+const documentRoute = require("./src/routes/document");
 const { strategy } = require("./src/passportStrategy/passportLocal");
 
 const { sequelize } = require("./src/sequelized/models");
@@ -46,7 +47,7 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser((id, done) => {
   done(null, id);
 });
 
@@ -54,11 +55,7 @@ app.use("/register-super-admin", registerSuperAdminRoute);
 app.use("/register", registerRoute);
 app.use("/login", logInRoute);
 app.use("/logout", logoutRoute);
-
-//dashboard api is just to test the successfully login.
-app.get("/dashboard", checkSession, (req, res) => {
-  return res.status(200).json({"message": `welcome to dashboard ${req.session.passport.user}`});
-});
+app.use("/document", checkSession, documentRoute);
 
 app.listen(port, async () => {
   await sequelize.authenticate();
