@@ -47,8 +47,6 @@ app.use("/login", logInRoute);
 
 //dashboard api is just to test the successfully login.
 app.get("/dashboard", checkSession, (req, res) => {
-  console.log("request", req.sessionID);
-  console.log("req.userrrrr>>>>>", req.user);
   return res.status(200).json({"message": `welcome to dashboard ${req.session.passport.user}`});
 });
 app.use("/logout", logoutRoute);
