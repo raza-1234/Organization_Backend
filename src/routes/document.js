@@ -8,8 +8,8 @@ const {
   deleteDocument
 } = require("../controllers/document");
 
-route.post("/createDocument/:organizationId", createDocument);
-route.get("/getDocument/:organizationId", getDocuments);
+route.post("/createDocument", createDocument);
+route.get("/getDocument", getDocuments);
 route.delete("/deleteDocument/:documentId", deleteDocument);
 route.put("/updateDocument/:documentId", updateDocument);
 

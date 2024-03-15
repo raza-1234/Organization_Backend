@@ -1,33 +1,17 @@
-const { Document, Organization } = require("../sequelized/models");
-
-const findDocument = async (documentId) => {
-  try {
-    const document = await Document.findOne({
-      where: {
-        id: documentId
-      }
-    });
-
-    if (!document){
-      return false;
-    }
-    return document; 
-  } catch (err){
-    throw new Error("Find Document: Something went wrong.", err);
-  }
-}
+const { Document, Organization, Asset } = require("../sequelized/models");
+const { findDocument } = require("../utils/findDocument");
 
 const createDocument = async (req, res) => {
-  const organizationId = Number(req.params.organizationId);
-  const { documentName } = req.body;
+  const {
+    user: {
+      organizationId
+    },
+    body: {
+      documentName
+    }
+  } = req;
 
-  if (!organizationId){
-    return res.status(400).json(
-      {"message": "Required param not found."}
-    )
-  }
-
-  if (!documentName?.trim()){
+  if (!documentName){
     return res.status(400).json(
       {"message": "All fields are required."}
     )
@@ -46,41 +30,36 @@ const createDocument = async (req, res) => {
       )
     }
 
-    const newDocument = {
+    await Document.create({
       organizationId,
       documentName
-    }
-
-    const addDocument = await Document.create(newDocument);
-    return res.status(200).json(
-    {
-      "message": "Document created successfully.",
-      addDocument
     });
+
+    return res.status(200).json(
+      {"message": "Document created successfully."}
+    );
 
   } catch (err){
     console.log("Document: Internal server error.", err);
     return res.status(500).json(
-      {"message": err}
+      {"message": "Internal server error."}
     )
   }
 }
 
 const getDocuments = async (req, res) => {
-  const organizationId = Number(req.params.organizationId);
-
-  if (!organizationId){
-    return res.status(200).json(
-      {"message": "Required param not found."}
-    )
-  }
+  const {
+    user: {
+      organizationId
+    }
+  } = req;
 
   try {
     const documents = await Document.findAll({
       where: {
         organizationId
       },
-      onder: [
+      order: [
         ['id', 'ASC']
       ],
       include: [
@@ -91,35 +70,41 @@ const getDocuments = async (req, res) => {
     });
 
     if (documents.length === 0){
-      return res.status(200).json(
-        {"message": "no document exist.", documentData: []}
-      )
+      return res.status(200).json({
+        status: {'message': "no document exist.", statusCode: 404},
+        documentData: [],
+      });
     }
-    return res.status(200).json(documents);
+
+    return res.status(200).json({
+      status: {'message': "Document found successfully", statusCode: 200}, 
+      documentData: documents
+    });
   } catch (err){
     console.log("GetAllDocuments: Internal server error.", err);
-    return res.status.json({"message": err});
+    return res.status.json(
+      {"message": 'Internal server error.'}
+    );
   }
 }
 
 const updateDocument = async (req, res) => {
-  const { documentName } = req.body;
-  const documentId  = Number(req.params.documentId);
+  const { 
+    user: {
+      organizationId
+    }, 
+    body: { documentName },
+    params: { documentId },
+  } = req;
 
-  if (!documentId){
-    return res.status(400).json(
-      {"message": "Required param not found."}
-    )
-  }
-
-  if (!documentName?.trim()){
+  if (!documentName){
     return res.status(400).json(
       {"message": "All fields are required."}
     )
   }
 
   try {
-    const documentExist = await findDocument(documentId);
+    const documentExist = await findDocument(documentId, organizationId);
 
     if (!documentExist){
       return res.status(404).json(
@@ -127,37 +112,54 @@ const updateDocument = async (req, res) => {
       );
     }
     documentExist.documentName = documentName;
-    await documentExist.save();
+    const updatedDocument = await documentExist.save();
 
-    return res.status(200).json({
-      "message": "changes saved",
-      documentExist
-    });
+    return res.status(200).json(
+      {
+        "message": "changes saved",
+        updatedDocument
+      }
+    );
   } catch (err){
     console.log("updateDocument: Internal server error.", err);
     return res.status(500).json(
-      {"message": err}
+      {"message": "Internal server error."}
     )
   }
 }
  
 const deleteDocument = async (req, res) => {
-  const documentId  = Number(req.params.documentId);
-
-  if (!documentId){
-    return res.status(400).json(
-      {"message": "Required param not found."}
-    )
-  }
+  const { 
+    user: {
+      organizationId
+    },
+    params: {
+      documentId
+    }
+  } = req;
 
   try {
-    const documentExist = await findDocument(documentId);
+    const documentExist = await findDocument(documentId, organizationId);
 
     if (!documentExist) {
       return res.status(404).json(
         {"message": "Document not found."}
       )
     }
+
+    const documentAssets = await Asset.findAll({
+      where: {
+        documentId,
+        organizationId
+      }
+    })
+
+    if (documentAssets.length > 0){
+      return res.status(400).json(
+        {"message": "Cannot delete document. It has associated assets."}
+      )
+    }
+    
     await documentExist.destroy();
     return res.status(200).json(
       {"message": "Document deleted successfully."}
@@ -166,7 +168,7 @@ const deleteDocument = async (req, res) => {
   } catch (err){
     console.log("Delete Document: Internal server error.", err);
     return res.status(500).json(
-      {"message": err}
+      {"message": "Internal server error."}
     )
   }
 }
