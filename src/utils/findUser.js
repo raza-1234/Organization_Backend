@@ -13,7 +13,7 @@ const findUserByEmail = async (email) => {
     }
     return userExist;
   } catch (err){
-    throw new Error(err);
+    throw new Error("Find User: Something went wrong.", err);
   }
 }
 

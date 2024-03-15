@@ -46,7 +46,9 @@ const registerSuperAdmin = async (req, res) => {
   }
   catch (err){
     console.log("Register SuperAdmin: Internal server error.", err);
-    res.status(500).json(err);
+    res.status(500).json(
+      {"messsage": "Internal Server Error"}
+    );
   }  
 }
 
