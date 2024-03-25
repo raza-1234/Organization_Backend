@@ -75,7 +75,7 @@ const getAssets = async (req, res) => {
       documentId
     },
     query: {
-      title
+      search
     }
   } = req;
 
@@ -95,14 +95,14 @@ const getAssets = async (req, res) => {
     offset: start
   }
 
-  if (title){
+  if (search){
     queryCondition.where = {
       [Op.and]: [
         {
           documentId,
           organizationId,
           title: {
-            [Op.like]: `%${title}%`
+            [Op.like]: `%${search}%`
           }
         }
       ]
